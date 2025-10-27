@@ -14,5 +14,10 @@ if [ ! -f /app/superset_home/.initialized ]; then
   touch /app/superset_home/.initialized
 fi
 
-exec gunicorn -w 2 -k gevent --timeout 120 \
-  --bind 0.0.0.0:${PORT:-8088} "superset.app:create_app()"
+# Use gthread instead of gevent (no external deps required)
+exec gunicorn \
+  --worker-class gthread \
+  --threads 4 \
+  --timeout 120 \
+  --bind 0.0.0.0:${PORT:-8088} \
+  "superset.app:create_app()"
