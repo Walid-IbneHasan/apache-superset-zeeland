@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 set -e
 
-# First-run init (idempotent)
+# Ensure the Postgres DB driver is available in the active venv
+# (this runs inside the same Python/venv that the `superset` CLI uses)
+if ! python -c "import pkgutil, sys; sys.exit(0 if pkgutil.find_loader('psycopg2') else 1)"; then
+  python -m pip install --no-cache-dir "psycopg2-binary>=2.9"
+fi
+
 mkdir -p /app/superset_home
 if [ ! -f /app/superset_home/.initialized ]; then
   superset db upgrade
@@ -15,6 +20,5 @@ if [ ! -f /app/superset_home/.initialized ]; then
   touch /app/superset_home/.initialized
 fi
 
-# Bind to $PORT (Render provides this env var)
 exec gunicorn -w 2 -k gevent --timeout 120 \
   --bind 0.0.0.0:${PORT:-8088} "superset.app:create_app()"
