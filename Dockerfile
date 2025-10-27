@@ -1,6 +1,9 @@
 # Pin a version; 5.x shown here
 FROM apache/superset:5.0.0
 
+USER root
+RUN pip install --no-cache-dir "psycopg2-binary>=2.9"
+
 # Add config
 COPY --chown=superset superset_config.py /app/superset_config.py
 ENV SUPERSET_CONFIG_PATH=/app/superset_config.py
